@@ -10,7 +10,11 @@
 *.fot
 *.cb
 *.cb2
+*.ist
+*.tdn
 .*.lb
+
+fordive.json
 
 ## Intermediate documents:
 *.dvi
