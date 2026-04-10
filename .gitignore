@@ -331,3 +331,4 @@ TSWLatexianTemp*
 
 # personal files
 individual_plan/
+$buildDir/

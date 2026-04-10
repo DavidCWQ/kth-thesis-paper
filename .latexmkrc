@@ -7,6 +7,11 @@ $pdflatex = 'pdflatex -shell-escape -interaction=nonstopmode -file-line-error -s
 $out_dir = 'build';
 $aux_dir = 'build';
 
+# Minted v3 + MiKTeX: pdflatex with -output-directory requires this env var or
+# minted fails (exit code 1). That aborts latexmk before the post-BibTeX runs,
+# so citations stay as [?] even though BibTeX would succeed.
+$ENV{TEXMF_OUTPUT_DIRECTORY} = $out_dir;
+
 # PDF mode
 $pdf_mode = 1;
 
@@ -20,13 +25,19 @@ $cd = 1;
 # Quiet mode
 $silent = 0;
 
-# Custom dependencies for glossaries
+# Custom dependencies for glossaries (must pass output dir when $aux_dir is set)
 add_cus_dep('glo', 'gls', 0, 'make_glossaries');
 sub make_glossaries {
-    system("makeglossaries '$_[0]'");
+    my ($path) = @_;
+    my $base = $path;
+    $base =~ s!^.*/!!;
+    system("makeglossaries", "-d", $aux_dir, $base);
 }
 
 add_cus_dep('acn', 'acr', 0, 'make_acronyms');
 sub make_acronyms {
-    system("makeglossaries '$_[0]'");
+    my ($path) = @_;
+    my $base = $path;
+    $base =~ s!^.*/!!;
+    system("makeglossaries", "-d", $aux_dir, $base);
 }

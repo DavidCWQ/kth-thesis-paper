@@ -655,457 +655,371 @@ Vi vill tacka xxxx för att de har yyyy.}
 \glsresetall
 \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
 \selectlanguage{english}
+% Block paragraphs in main matter: no first-line indent; visible gap between paragraphs (one empty line in source).
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.9\baselineskip plus 2pt minus 1pt}
 
 \chapter{Introduction}
 \label{ch:introduction}
-\sweExpl{svensk: Introduktion}
+This chapter introduces the clinical and technical motivation for deep learning based low-latency breast ultrasound video tumor detection, states the research problem and questions that guide the degree project, and summarizes the purpose, goals, research approach, and scope of the thesis.
 
+Breast cancer remains one of the leading causes of cancer-related mortality among women worldwide, and earlier detection is consistently associated with improved survival, less aggressive treatment pathways, and better long-term prognosis~\cite{dan2024_breast_us_dl_review}.
+Ultrasound has become a workhorse modality in this context because it is relatively inexpensive, portable, free of ionizing radiation, and well suited to bedside, intraoperative, and serial follow-up examinations; it is especially valuable for women with dense breast tissue, in whom mammography has reduced sensitivity, and in settings where access to magnetic resonance imaging or large-scale organized screening programs is limited~\cite{dan2024_breast_us_dl_review,chen2021_ceus_domain,wang2021_ultrasound_dl_review}.
 
-\sweExpl{Ofta kommer problemet och problemägaren från industrin där man önskar en specifik lösning på ett specifikt problem. Detta är ofta ”för smalt” definierat och ger ofta en ”för smal” lösning för att resultatet skall vara intressant ur ett mer allmänt ingenjörsperspektiv och med ”nya” erfarenheter som resultat. Fundera tillsammans med projektets intressenter (student, problemägare och akademi) hur man skulle kunna använda det aktuella problemet/förslaget för att undersöka någon ingenjörsaspekt och vars resultat kan ge ny eller kompletterande erfarenhet till ingenjörssamfundet och vetenskapen.\\slöser man en del eller hela delen av det ursprungliga problemet.\\Erfarenheten kommer ur en frågeställning som man i examensarbetet försöker besvara med tidigare och andras erfarenhet, egna eller modifierade metoder som ger ett resultat vilket kan användas för att diskutera ett svar på undersökningsfrågan.\\Detta stycke skall alltså, förutom det ursprungliga ”smala” problemet, innehålla  vad som skall undersökas för att skapa ny ingenjörserfarenhet och/eller vetenskap.}
+Over the past decade, convolutional deep learning has transformed computer-aided diagnosis for ultrasound, moving from hand-crafted features toward end-to-end representation learning for classification, localization, and segmentation~\cite{litjens2017_survey_deep_medical,wang2021_ultrasound_dl_review}.
+Broad surveys in medical image analysis document how CNNs and encoder--decoder architectures can exploit local texture statistics at multiple scales, while ultrasound-specific reviews catalog preprocessing, augmentation, and task formulations that recur across organs and acquisition protocols~\cite{litjens2017_survey_deep_medical,wang2021_ultrasound_dl_review}.
+Despite this progress, much of the published evidence still rests on static frames or loosely sampled key-frames, even though clinical acquisition is inherently dynamic: the sonographer sweeps the transducer, adjusts depth and gain, and mentally integrates persistence of structures across time~\cite{chen2021_ceus_domain,lin2022_buv_miccai,zhao2023_dynamic_us_video}.
 
-\engExpl{The first paragraph after a heading is not indented, all of the
-  subsequent paragraphs have their first line indented.}
-  
-This chapter describes the specific problem that this thesis addresses, the context of the problem, the
-goals of this thesis project, and outlines the structure of the thesis.\\
+Recent breast ultrasound video studies and public benchmarks demonstrate that temporal cues---including lesion persistence, boundary coherence under probe motion, and contrast dynamics in specialized acquisitions---can improve stability and discrimination relative to single-frame analysis~\cite{chen2021_ceus_domain,lin2022_buv_miccai,zhao2023_dynamic_us_video,zhang2024_whbus_isbi}.
+At the same time, systematic reviews of deep learning for breast ultrasound diagnosis caution that the clinical literature remains heterogeneous in design, often lacks prospective evaluation against expert readers, and may overstate generalizability when external validation is weak~\cite{dan2024_breast_us_dl_review}.
+These observations motivate a thesis that is explicit about evaluation protocols, dataset scope, and the difference between algorithmic metrics and proven patient benefit.
 
-\generalExpl{Give a general introduction to the area. (Remember to use appropriate references in this and all other sections.)}
-
-% One can use either biblatex or bibtex - set as the option for the document at the top of this file
-\iftoggle{biblatex}{
-\engExpl{We use the \emph{biblatex} package to handle our references.  We
-use the command \texttt{parencite} to get a reference in parenthesis, like
-this \textbackslash parencite\{heisenberg2015\} resulting in \parencite{heisenberg2015}.  It is also possible to include the author as part of the sentence using \texttt{textcite}, like talking about the work of \textbackslash textcite\{einstein2016\} resulting in \textcite{einstein2016}.\\
-This also means that you have to change the include files to include biblatex and change the way that the \texttt{reference.bib} file is included.}
-}{
-\engExpl{We use the \emph{bibtex} package to handle our references.  We, therefore,
-use the command \textbackslash cite\{farshin\_make\_2019\}. For example, Farshin, \etal described how to improve LLC
-cache performance in \cite{farshin_make_2019} in the context of links running
-at \qty{200}{Gbps}.}
-}
-
-\engExpl{Use the glossaries package to help yourself and your readers.
-Add the acronyms and abbreviations to lib/acronyms.tex. Some examples are shown below:}
-In this thesis, we will examine the use of \glspl{LAN}. In this thesis, we will
-assume that \glspl{LAN} include \glspl{WLAN}, such as \gls{WiFi}.
-
+From a computer vision perspective, spatio-temporal models such as three-dimensional convolutions, two-pathway SlowFast designs, ConvLSTM memory, and space-time attention offer principled mechanisms to aggregate evidence across frames~\cite{huang2023_3dcnn_video_review,feichtenhofer2019_slowfast,shi2015_convlstm,bertasius2021_spacetime_attention,liu2022_video_swin_transformer}.
+However, the same mechanisms that improve temporal modeling typically increase memory traffic, activation volume, and operator count, which can reduce throughput on clinical workstations or edge devices and conflict with interactive refresh requirements~\cite{huang2023_3dcnn_video_review,liu2023_edgemednet}.
+The central engineering--scientific tension addressed here is therefore how to obtain the robustness benefits of temporal context for tumor \emph{detection} in breast ultrasound video without sacrificing the responsiveness expected of real-time B-mode workflows.
 
 \section{Background}
 \label{sec:background}
-\sweExpl{svensk: Bakgrund}
 
-\generalExpl{Present the background for the area. Set the context for your project – so that your reader can understand both your project and this thesis. (Give detailed background information in Chapter 2 - together with related work.)
-Sometimes it is useful to insert a system diagram here so that the reader
-knows what are the different elements and their relationship to each
-other. This also introduces the names/terms/… that you are going to use
-throughout your thesis (be consistent). This figure will also help you later
-delimit what you are going to do and what others have done or will do.}
+The Division of Biomedical Imaging at KTH Royal Institute of Technology advances artificial intelligence for medical imaging and video analysis with an emphasis on methods that can plausibly translate into clinical practice.
+This degree project is aligned with that agenda: it investigates lightweight spatio-temporal deep learning for breast ultrasound video tumor detection under explicit computational constraints, combining domain guidance from an external supervisor with academic supervision at KTH.
 
-As one can find in RFC 1235\,\cite{ioannidis_coherent_1991} multicast is useful for xxxx. A number of different \glspl{OS} have been used in this work, such as the following \glspl{OS}: UNIX, Linux, Windows, etc. The main focus will be on one \gls{OS}, namely Linux.
+Methodologically, the thesis sits at the intersection of three mature research threads: medical image analysis, where U-Net-style dense prediction and modern detectors provide strong spatial priors~\cite{litjens2017_survey_deep_medical,ronneberger2015_unet,lin2017_focal_loss_retinanet}; video understanding, where temporal convolutions, recurrence, and hierarchical video transformers model motion and long-range dependencies~\cite{feichtenhofer2019_slowfast,bertasius2021_spacetime_attention,liu2022_video_swin_transformer}; and efficient deep learning, where slimmed architectures and deployment optimizations seek to preserve accuracy on resource-bounded hardware~\cite{liu2023_edgemednet}.
+Chapter~\ref{ch:background} reviews these areas with emphasis on how prior ultrasound work treats temporal structure and on where latency-aware reporting remains sparse.
 
 \section{Problem}
 \label{sec:problem}
-\sweExpl{svensk: Problemdefinition eller Frågeställning\\
-Lyft fram det ursprungliga problemet om det finns något och definiera därefter
-den ingenjörsmässiga erfarenheten eller/och vetenskapen som kan komma ur
-projektet. }
 
-Longer problem statement\\
-If possible, end this section with a question as a problem statement.
+Breast ultrasound video tumor detection inherits the full difficulty of B-mode imaging: speckle, attenuation and shadowing, limited contrast between masses and fibroglandular tissue, and dependence on operator skill, equipment presets, and patient habitus~\cite{dan2024_breast_us_dl_review,wang2021_ultrasound_dl_review,chen2021_ceus_domain}.
+When a detector is applied independently to each frame, the model must solve a heavily imbalanced spatial prediction problem on every timestep, which encourages high sensitivity to short-lived clutter and can yield temporally inconsistent boxes that are difficult for a human reader to trust~\cite{lin2017_focal_loss_retinanet,lin2022_buv_miccai}.
+Integrating temporal context offers a natural remedy because true anatomical structures tend to persist and deform coherently across frames, whereas many artifacts flicker or fail to align with stable motion fields~\cite{zhao2023_dynamic_us_video,zhang2024_whbus_isbi}.
 
-% Research Question
+The cost of temporal modeling is computational.
+Clip-level inference implies storing multiple frames or feature maps in memory, and richer temporal backbones increase floating-point operations per decision~\cite{huang2023_3dcnn_video_review,bertasius2021_spacetime_attention}.
+For interactive ultrasound, refresh latency influences usability: overlays that lag noticeably behind the probe can mislead the operator or induce compensatory slowing of the examination.
+Following the individual project plan, this thesis adopts a concrete throughput target of at least \SI{15}{FPS} on a specified GPU configuration as a working definition of low-latency feasibility, while noting that clinical acceptability also depends on frame rate, field of view, and whether inference runs on buffered clips versus a live stream.
+
 \subsection{Original problem and definition}
 \label{sec:researchQuestion}
-\sweExpl{Ursprungligt problem och definition}
-Some text
 
-\subsection{Scientific and engineering issues}\sweExpl{Vetenskaplig och ingenjörsmässig frågeställning}
-some text
+The applied problem is to support breast ultrasound examination by providing timely, spatially localized indications of suspicious masses in B-mode video streams, framed strictly as decision support rather than as autonomous diagnosis.
+The scientific problem is to quantify how lightweight spatio-temporal deep learning changes detection quality \emph{and} inference cost relative to competitive frame-based detectors when both are trained and evaluated under matched protocols on public video corpora~\cite{lin2022_buv_miccai}.
+The technical scope is object-level detection (bounding boxes or equivalent outputs) with reproducible preprocessing, publicly documented splits where available, and controlled profiling of latency, throughput, and model complexity~\cite{liu2023_edgemednet}.
+
+\subsection{Scientific and engineering issues}
+
+Scientifically, the work must report detection-centric metrics that remain comparable to prior breast ultrasound video baselines, including mean average precision and complementary analyses such as sensitivity at fixed false-positive rates or FROC-style summaries when the annotation format permits~\cite{lin2022_buv_miccai,lin2017_focal_loss_retinanet}.
+It must also characterize temporal stability, for example by analyzing box-level IoU trajectories or clip-level consistency statistics, because smooth outputs are part of the clinical motivation for video models~\cite{zhao2023_dynamic_us_video}.
+Engineering issues include mitigating domain shift when multiple datasets are combined, controlling for training budget and input resolution when comparing architectures, and validating that optimization for speed---through width reduction, attention factorization, or cautious quantization---does not silently erode small-lesion sensitivity~\cite{liu2023_edgemednet,dan2024_breast_us_dl_review}.
+
+The main research question is: \emph{How does spatio-temporal deep learning modeling affect tumor detection performance and inference latency compared with conventional frame-based approaches for breast ultrasound video analysis?}
+Two supporting questions ask (i) how temporal modeling influences detection accuracy relative to frame-wise detectors, and (ii) what accuracy--latency trade-offs arise when alternative temporal architectures are applied under matched training budgets and hardware.
 
 \section{Purpose}
-\sweExpl{Syfte}
-\sweExpl{Skilj på syfte och mål! Syfte är att förändra något till det bättre. I examensarbetet finns ofta två aspekter på detta. Dels vill problemägaren (företaget) få sitt problem löst till det bättre men akademin och ingenjörssamfundet vill också få nya erfarenheter och vetskap. Beskriv ett syfte som tillfredställer båda dessa aspekter.\\
-Det finns även ett syfte till som kan vara värt att beakta och det är att du som student skall ta examen och att du måste bevisa, i ditt examensarbete, att du uppfyller examensmålen. Dessa mål sammanfaller med kursmålen för examensarbetskursen. 
-}
-\generalExpl{State the purpose of your thesis and the purpose of your degree project.\\
-Describe who benefits and how they benefit if you achieve your goals. Include anticipated ethical, sustainability, social issues, etc. related to your project. (Return to these in your reflections in Section~\ref{sec:reflections}.)}
 
+The purpose of the degree project is twofold.
+Clinically and collaboratively, it seeks a validated, well-documented detection pathway that improves temporal coherence and localization quality on benchmark breast ultrasound video while meeting the stated low-latency target, thereby illustrating how temporal fusion can be incorporated without abandoning interactive throughput~\cite{lin2022_buv_miccai,liu2023_edgemednet}.
+For the research community, it seeks structured evidence on which temporal design choices yield measurable gains on ultrasound video under explicit computational budgets, complementing a literature that often emphasizes accuracy in isolation~\cite{dan2024_breast_us_dl_review,wang2021_ultrasound_dl_review}.
 
+Ethically, the system is positioned as an aid to licensed clinicians; predictive uncertainty, dataset bias, and limits of external validity must be communicated clearly~\cite{dan2024_breast_us_dl_review}.
+Public benchmarks are assumed de-identified per their licenses; any future institutional data require appropriate governance.
+From a sustainability viewpoint, lighter inference reduces energy per examination and may support deployment in resource-constrained environments, though such claims require measured evidence rather than speculation~\cite{liu2023_edgemednet}.
 
 \section{Goals}
-\sweExpl{Mål}
-\sweExpl{Skilj på syfte och mål. Syftet är att åstakomma en förändring i något. Målen är vad som konkret skall göras för att om möjligt uppnå den önskade förändringen (syfte). }
 
-\generalExpl{State the goal/goals of this degree project.}
+The following goals specify measurable outcomes aligned with the individual degree plan and with the research questions above.
 
-The goal of this project is XXX. This has been divided into the following three sub-goals:
 \begin{enumerate}
-\item Subgoal 1 \sweExpl{för att tillfredsställa problemägaren – industrin?}
-\item Subgoal 2\sweExpl{för att tillfredsställa ingenjörssamfundet och vetenskapen – akademin) }
-\item Subgoal 3\sweExpl{eventuellt, för att uppfylla kursmålen – du som student}
+  \item Implement and document a competitive frame-based tumor detection baseline on breast ultrasound video data, including transparent preprocessing, training protocol, and evaluation scripts~\cite{lin2022_buv_miccai,redmon2018_yolov3,lin2017_focal_loss_retinanet}.
+  \item Develop one or more spatio-temporal extensions that integrate temporal modules inspired by established video architectures (ConvLSTM-style recurrence, SlowFast-style dual pathways, factorized space-time attention, or hierarchical video transformers such as Video Swin) and compare them systematically to the frame-wise model~\cite{shi2015_convlstm,feichtenhofer2019_slowfast,bertasius2021_spacetime_attention,liu2022_video_swin_transformer}.
+  \item Optimize the chosen models for inference efficiency while monitoring detection metrics, targeting at least \SI{15}{FPS} under predefined hardware conditions without unacceptable loss of lesion-level sensitivity~\cite{liu2023_edgemednet}.
+  \item Deliver a prototype inference pipeline that consumes short ultrasound clips or frame buffers and produces synchronized overlays, together with an experimental report of accuracy--latency trade-offs, ablations, and explicit limitations~\cite{lin2022_buv_miccai}.
 \end{enumerate}
 
-\generalExpl{In addition to presenting the goal(s), you might also state what the deliverables and results of the project are.}
+\section{Research Methodology}
 
-\section{Research Methodology}\sweExpl{Undersökningsmetod}
-\sweExpl{Här anger du vilken vilken övergripande undersökningsstrategi eller metod du skall använda för att försöka besvara den akademiska frågeställning och samtidigt lösa det e v ursprungliga problemet. Ofta kan man använda ”lösandet av ursprungsproblemet” som en fallstudie kring en akademisk frågeställning. Du undersöker någon intressant fråga i ”skarpt” läge och samlar resultat och erfarenhet ur detta.\\
-Tänk på att företaget ibland måste stå tillbaka i sin önskan och förväntan på projektets resultat till förmån för ny eller kompletterande ingenjörserfarenhet och vetenskap (ditt examensarbete). Det är du som student som bestämmer och löser fördelningen mellan dessa två intressen men se till att alla är informerade. }
-\generalExpl{Introduce your choice of methodology/methodologies and method/methods – and the reason why you chose them. Contrast them with and explain why you did not choose other methodologies or methods. (The details of the actual methodology and method you have chosen will be given in Chapter~\ref{ch:methods}. Note that in Chapter~\ref{ch:methods}, the focus could be research strategies, data collection, data analysis, and quality assurance.)\\
-In this section you should present your philosophical assumption(s), research method(s), and research approach(es).}
+The thesis follows a quantitative, engineering-oriented methodology grounded in reproducible deep learning experimentation and statistical summarization of benchmark outcomes~\cite{litjens2017_survey_deep_medical,dan2024_breast_us_dl_review}.
+Claims are supported by controlled comparisons of model families on shared data, ablations that isolate temporal clip length and fusion location, and profiling that attributes latency to backbone, temporal module, and post-processing stages~\cite{liu2023_edgemednet}.
+Qualitative inspection of failure modes on held-out clips supplements scalar metrics and guards against overfitting to a single score~\cite{dan2024_breast_us_dl_review}.
 
-\section{Delimitations}\sweExpl{Avgränsningar}
-\generalExpl{Describe the boundary/limits of your thesis project and what you are explicitly not going to do. This will help you bound your efforts – as you have clearly defined what is out of the scope of this thesis project. Explain the delimitations. These are all the things that could affect the study if they were examined and included in the degree project.}
+Alternatives such as reporting only static-image performance were rejected because they cannot answer questions about temporal stability or clip-level cost.
+Prospective clinical evaluation is out of scope; therefore, performance statements are framed as algorithmic results on documented cohorts rather than as proven effects on patient outcomes~\cite{dan2024_breast_us_dl_review}.
 
-\section{Structure of the thesis}\sweExpl{ Rapportens disposition}
-Chapter~\ref{ch:background} presents relevant background information about xxx.  Chapter~\ref{ch:methods} presents the methodology and method used to solve the problem. …
+Philosophically, the stance is post-positivist: models and metrics are treated as fallible instruments whose results must be interpreted in light of annotation noise, selection bias, and limited external validation~\cite{dan2024_breast_us_dl_review}.
+Chapter~\ref{ch:methods} details procedures for reliability, validity, and analysis.
+
+\section{Delimitations}
+
+The project is limited to tumor detection (localization) in breast ultrasound video; it does not pursue definitive benign-versus-malignant diagnosis, full reporting, or multimodal fusion with mammography or magnetic resonance imaging.
+Evaluation uses public video benchmarks and optional collaborative data governed by ethics review, not a randomized trial; regulatory certification and hospital integration are explicitly excluded.
+Transformer-based video models may be included, but the emphasis remains on variants that can plausibly meet latency constraints alongside strong CNN baselines~\cite{dosovitskiy2021_vit,liu2022_video_swin_transformer,liu2023_edgemednet}.
+
+\section{Structure of the thesis}
+
+Chapter~\ref{ch:background} reviews ultrasound imaging challenges, deep learning foundations and ultrasound-specific surveys, video architectures, efficient deployment, and related breast ultrasound video work.
+Chapter~\ref{ch:methods} presents the planned research process, data curation, experimental apparatus, statistical analysis, metric definitions, and documentation strategy.
+Later chapters will report implementation outcomes, discussion, and conclusions after experiments are executed.
 
 \cleardoublepage
 \chapter{Background}
 \label{ch:background}
-\sweExpl{Bakgrund}
 
-\generalExpl{When you do your literature study, you should have a nearly complete Chapters 1 and 2.\\
-You may also find it convenient to introduce the future work section into your report early – so that you can put things that you think about but decide not to do now into this section.\\
-Note that later you can move things between this future work section and what you have done as you may change your mind about what to do now versus what to put off to future work.
-}
-\generalExpl{What does a reader (another x student -- where x is your study line) need to know to understand your report?
-What have others already done? (This is the “related work”.) Explain what and
-how prior work/prior research will be applied on or used in the degree
-project/work (described in this thesis). Explain why and what is not used in
-the degree project and give valid reasons for rejecting the work/research.}
-
-This chapter provides basic background information about xxx. Additionally, this chapter describes xxx. The chapter also describes related work xxxx.
-
-
-
-\sweExpl{Vilken viktig litteratur och
-  (forsknings-)artiklar har du studerat inom området (litteraturstudie)? }
+This chapter synthesizes peer-reviewed and widely cited sources on breast ultrasound imaging, deep learning for ultrasound analysis, spatio-temporal video modeling, efficient neural architectures for medical deployment, and prior work on breast ultrasound video.
+The narrative is organized around a recurring tension: temporal information appears clinically meaningful and empirically useful for lesion analysis, yet many high-performing video architectures increase computational cost in ways that complicate low-latency deployment~\cite{lin2022_buv_miccai,huang2023_3dcnn_video_review,liu2023_edgemednet,wang2021_ultrasound_dl_review}.
 
 \section{Major background area 1}
-\sweExpl{Viktigt bakgrundsområde 1}
-There are xxx characteristics that distinguish yyy from other information and communication technology (ICT) system, as shown in Figure~\ref{fig:lotsofstars}. Table \ref{tab:tablecaracteristics} summarizes these characteristics.
 
- 
-\begin{figure}[!ht]
-  \begin{center}
-    \includegraphics[width=0.5\textwidth]{figures/lots_of_stars.png}
-  \end{center}
-  \caption{Lots of stars  (Inspired by Figure x.y on page z of [xxx])}
-  \label{fig:lotsofstars}
-\end{figure}
-\sweExpl{Massor av stjärnor (Inspirerad av figur x.y på sidan z i [xxx])}
+\subsection{Clinical context, screening, and real-time acquisition}
+Breast ultrasound functions both as a diagnostic adjunct after abnormal mammography and as a primary tool in selected screening and diagnostic pathways, particularly when tissue density limits mammographic sensitivity or when rapid, radiation-free imaging is required at the point of care~\cite{dan2024_breast_us_dl_review,wang2021_ultrasound_dl_review}.
+Hand-held B-mode acquisition is inherently interactive: the operator adjusts depth, focal zone, and gain while observing a live display, and diagnostic reasoning often depends on subtle motion patterns, compression behavior, and the stability of suspected masses across sweeps~\cite{chen2021_ceus_domain,lin2022_buv_miccai}.
+That workflow motivates algorithms that consume short clips or streaming buffers rather than isolated stills, but it also imposes latency constraints: decision support that lags far behind the live image risks distracting rather than assisting the examiner~\cite{liu2023_edgemednet}.
 
+\subsection{Speckle, limited contrast, and operator-dependent variability}
+Ultrasound images exhibit speckle, an interference texture that complicates edge localization and reduces contrast between lesions and surrounding parenchyma~\cite{wang2021_ultrasound_dl_review,dan2024_breast_us_dl_review}.
+Attenuation, shadowing, reverberation, and frequency-dependent resolution produce appearance variation across devices and presets, while probe contact force and patient motion introduce temporal warping that a single-frame model may interpret as novel structure~\cite{chen2021_ceus_domain,zhao2023_dynamic_us_video}.
+These effects explain both the appeal of data-hungry CNNs, which can learn invariances when training data are diverse, and the risk of overfitting when cohorts are small or scanner-specific~\cite{litjens2017_survey_deep_medical,dan2024_breast_us_dl_review}.
 
-\begin{table}[!ht]
-  \begin{center}
-    \caption{xxx characteristics}
-    \label{tab:tablecaracteristics}
-    \begin{tabular}{l|S[table-format=4.6]} % <-- Alignments: 1st column left, 2nd middle, with vertical lines in between
-      \textbf{Characteristics} & \textbf{Description}\\
-      $\alpha$ & $\beta$ \\
-      \hline
-      1 & 1110.1\\
-      2 & 10.1\\
-      3 & 23.113231\\
-    \end{tabular}
-  \end{center}
-\end{table}
-\sweExpl{Egenskaper}
-\sweExpl{Beskrivning}
+\subsection{Evidence from systematic reviews on deep learning in breast ultrasound}
+Systematic reviews of deep learning applied to breast ultrasound diagnosis synthesize heterogeneous study designs and caution that many publications rely on retrospective cohorts, limited external validation, and surrogate accuracy metrics that do not directly establish clinical superiority over expert readers~\cite{dan2024_breast_us_dl_review}.
+Those cautions are not arguments against algorithmic development; rather, they define the evidentiary standard that a thesis should respect by reporting protocols transparently, separating in-distribution from out-of-distribution tests, and avoiding over-interpretation of single-number accuracy~\cite{dan2024_breast_us_dl_review,wang2021_ultrasound_dl_review}.
 
-\subsection{Subarea 1.1}
-Entangled states are an important part of quantum cryptography, but also relevant in other domains. This concept might be relevant for neutrinos, see for example \cite{kim_small-mass_2016}.
+\section{Major background area 2}
 
-\subsection{Subarea 1.1.2}
-Computational methods are increasingly used as a third method of carrying out
-scientific investigations. For example, computational experiments were used to
-find the amount of wear in a polyethylene liner of a hip prosthesis in \cite{maguire_jr_new_2014}.
-…
+\subsection{Convolutional representation learning, U-Net, and ultrasound tasks}
+Convolutional networks learn multiscale representations by composing local filters; in medical imaging this family underpins both global classification and dense prediction~\cite{litjens2017_survey_deep_medical}.
+U-Net exemplifies encoder--decoder design with skip connections that propagate fine spatial detail to the decoding path, which helps preserve lesion boundaries that would otherwise be smoothed by repeated pooling~\cite{ronneberger2015_unet}.
+Ultrasound-oriented reviews catalog how similar architectural ideas recur across classification, segmentation, enhancement, and reconstruction pipelines, often with modality-specific preprocessing and augmentation~\cite{wang2021_ultrasound_dl_review}.
+For \emph{detection}, however, the modeling target shifts from per-pixel labels to sparse objects of varying size; practitioners therefore frequently adopt detectors with multiscale heads and improved training objectives for class imbalance~\cite{lin2017_focal_loss_retinanet,redmon2018_yolov3}.
 
-\subsection{Subarea 1.1.2}
-Using the nearest data center may improve performance, see \cite{bogdanov_nearest_2015}
+\subsection{YOLO-style and RetinaNet-style detection baselines}
+\label{sec:detection_baselines}
+One-stage detectors such as YOLO predict boxes and class scores over a dense set of locations at multiple scales, trading some theoretical simplicity for throughput and straightforward deployment graphs~\cite{redmon2018_yolov3}.
+RetinaNet popularized focal loss together with feature pyramids to counter extreme foreground--background imbalance, a setting that resembles ultrasound frames where lesions occupy a tiny fraction of pixels~\cite{lin2017_focal_loss_retinanet}.
+Applied frame-wise, these models provide strong baselines because they isolate spatial perception from temporal reasoning; any subsequent gain from temporal fusion can then be attributed to the video module rather than to incidental differences in detection head design~\cite{lin2022_buv_miccai}.
 
+\subsection{Spatio-temporal architectures for video understanding}
+\label{sec:spatiotemporal_architectures}
+Video models extend spatial CNNs along time.
+Three-dimensional convolutions offer an intuitive spatio-temporal inductive bias but increase cost relative to $2\mathrm{D}$ backbones, which matters when clinical workstations must sustain interactive frame rates~\cite{huang2023_3dcnn_video_review}.
+SlowFast networks split computation across a low-frame-rate pathway that captures appearance and a higher-rate pathway that emphasizes motion, then fuse features so that both cues influence the final representation~\cite{feichtenhofer2019_slowfast}.
+ConvLSTM layers propagate convolutional hidden states across time, yielding temporal memory while respecting spatial locality~\cite{shi2015_convlstm}.
+Transformer-based designs replace or augment convolutions with self-attention; factorized space-time attention limits pairwise interactions relative to full spatio-temporal attention~\cite{bertasius2021_spacetime_attention,dosovitskiy2021_vit}.
+Hierarchical video transformers such as Video Swin further localize attention within shifted windows across space and time, improving speed--accuracy trade-offs on large-scale video benchmarks and providing a modern alternative to purely convolutional temporal fusion~\cite{liu2022_video_swin_transformer}.
 
-\subsection{Link layer Encapsulation}
-\label{sec:llencap}
+\subsection{Efficient medical CNNs and deployment-oriented optimization}
+Medical edge segmentation networks such as EdgeMedNet illustrate that aggressive width reduction, grouped convolutions, and decoder slimming can preserve clinically meaningful overlap metrics on embedded hardware~\cite{liu2023_edgemednet}.
+At inference time, mixed precision, kernel fusion, and careful batching policy interact with model architecture to determine realized latency; any compression strategy adopted in this thesis will therefore be validated jointly on detection scores and timed runs rather than on FLOPs alone~\cite{liu2023_edgemednet}.
 
-See Figure~\ref{fig:ieee8023-data-packet} which uses the \textsf{bytefield}  \LaTeX\ package. 
+\section{Related work area}
 
+\subsection{Public breast ultrasound video corpora and strong video baselines}
+Lin \emph{et al.} published a curated breast ultrasound video dataset and a baseline architecture (CVA-Net) that fuses clip-level and video-level temporal information for lesion detection, enabling mAP-style benchmarking on real video rather than on isolated frames~\cite{lin2022_buv_miccai}.
+Independent dynamic-ultrasound studies report that temporal appearance and motion patterns improve lesion classification relative to single-frame inputs, supporting the clinical intuition that time carries diagnostic signal~\cite{zhao2023_dynamic_us_video}.
+Related WHBUS research uses segment-level attention to emphasize informative temporal intervals, illustrating that uniform temporal pooling is suboptimal when only short portions of a clip contain discriminative motion~\cite{zhang2024_whbus_isbi}.
+Domain-informed models for contrast-enhanced ultrasound further show that structured priors and temporal modeling can be combined when acquisition physics differs from standard B-mode~\cite{chen2021_ceus_domain}.
 
-\begin{figure}[!ht]
-	\centering
-\begin{bytefield}{21}
-\bitbox[]{7}{} & \bitbox[]{3}{\tiny octets:} & \bitbox[]{4}{\tiny 6} & \bitbox[]{4}{\tiny 6} & \bitbox[]{3}{\tiny 2} & \bitbox[]{5}{\tiny 46 to 1500} & \bitbox[]{3}{\tiny 0 to 46} & \bitbox[]{2}{\tiny 4}\\ 
+\subsection{Complementary challenges, 3D ABUS, and generalization context}
+Automated three-dimensional breast ultrasound (ABUS) challenges and corpora target volumetric acquisition geometries that differ from hand-held $2\mathrm{D}$ video yet face analogous detection and segmentation difficulties~\cite{luo2025_tdsc_abus_challenge}.
+Such work is relevant as a conceptual upper bound on how much annotation and model capacity may be required for reliable tumor search in breast ultrasound more broadly, and as a reminder that performance on one geometry does not transfer automatically to another~\cite{luo2025_tdsc_abus_challenge,dan2024_breast_us_dl_review}.
+Across modalities, comparatively few studies simultaneously report lesion-level video detection metrics, clinically motivated temporal design, and strict on-device latency constraints; closing that gap is the positioning of the present thesis~\cite{lin2022_buv_miccai,liu2023_edgemednet}.
 
-\bitbox[]{8}{\textbf{ETHERNET \\[-1ex] \tiny{data link-layer}}} & \bitbox[]{2}{} & 
+\subsection{Post-processing baselines and correlated noise}
+A pragmatic alternative to end-to-end temporal learning is to run a frame-wise detector and smooth outputs with heuristics or lightweight trackers~\cite{lin2022_buv_miccai}.
+Such cascades are valuable comparators because they reveal when temporal gains require joint feature learning rather than mere post hoc filtering; they can fail when speckle and clutter are temporally correlated, which provides motivation for integrated spatio-temporal backbones~\cite{lin2022_buv_miccai,wang2021_ultrasound_dl_review}.
 
-\bitbox{4}{\tiny Destination Address} & \bitbox{4}{\tiny Source Address} & \bitbox{3}{\tiny Length/ Type} & 
-\bitbox{5}{\tiny Data Payload} & \bitbox{3}{\tiny Padding} &
-\bitbox{2}{\tiny CRC} \\
+\subsection{External validity and reporting standards}
+Finally, systematic reviews emphasize that high in-cohort accuracy can mislead if external validation is weak or if study protocols differ materially from deployment conditions~\cite{dan2024_breast_us_dl_review}.
+The experimental plan in Chapter~\ref{ch:methods} therefore foregrounds documented splits, version-controlled training recipes, and explicit discussion of dataset shift whenever multiple public sources are combined~\cite{dan2024_breast_us_dl_review,lin2022_buv_miccai}.
 
-\bitbox[]{1}{} &\bitbox[]{3}{\tiny octets:} & \bitbox[]{4}{\tiny 7} & \bitbox[]{2}{\tiny 1} & \bitbox[]{0}{$\vdots$ \\[1ex]} & \bitbox[]{16}{} & \bitbox[]{0}{$\vdots$ \\[1ex]} & \bitbox[]{5}{} & \bitbox[]{4}{\tiny Variable}\\
+\section{Summary}
 
-\bitbox[]{4}{\textbf{MAC \\[-1ex] \tiny{packet}}} & \colorbitbox{lightgray}{4}{\tiny Preamble} & \colorbitbox{lightgray}{2}{\tiny SFD} & \colorbitbox{lightgray}{16}{\tiny MAC Client Data} & \colorbitbox{lightgray}{3}{\tiny Padding} &
-\colorbitbox{lightgray}{2}{\tiny CRC} & \colorbitbox{lightgray}{4}{\tiny Extension}
-\end{bytefield}
-     \caption{Ethernet data link layer protocol encapsulated into a IEEE~802.3 MAC packet}
-     \label{fig:ieee8023-data-packet}
-\end{figure}
-
-\subsection{IP packet headers}
-\label{sec:ipheaders}
-The data link layer will receive a packet from the IP layer. The layout of
-an IPv4 packet is shown in Figure~\ref{fig:ipv4-header}. This should be
-contrasted with the IPv6 header shown in Figure~\ref{fig:ipv6-header}.
-
-%
-% IPv4 packet header
-%
-\begin{figure}[!ht]
-	\centering
-\begin{bytefield}{32}
-\bitheader{0-31} \\
-\bitbox{4}{\footnotesize{Version}} & \bitbox{4}{IHL} & \bitbox{6}{\tiny{Type of Service}} & \bitbox{2}{{\scriptsize ECN}} \bitbox{16}{Total Length}\\
-\bitbox{16}{Identification} & \bitbox{3}{Flags} & \bitbox{13}{Fragment Offset}\\
-\bitbox{8}{Time to Live} & \bitbox{8}{Protocol} & \bitbox{16}{Header Checksum}\\
-\wordbox{1}{Source Address}\\
-\wordbox{1}{Destination Address}\\
-\colorbitbox{lightgray}{24}{Options} & \colorbitbox{lightgray}{8}{Padding}
-\end{bytefield}
-     \caption[IPv4 datagram header]{IPv4 datagram header. Light grey-colored fields are optional.}
-    \label{fig:ipv4-header} 
-\end{figure}
-
-%
-% IPv6 packet header
-%
-\begin{figure}[!ht]
-	\centering
-\begin{bytefield}{32}
-\bitheader{0-31} \\
-\bitbox{4}{\footnotesize{Version}} & \bitbox{8}{Traffic Class} & \bitbox{20}{Flow Label}\\
-\bitbox{16}{Payload Length} & \bitbox{8}{Next Header} & \bitbox{8}{Hop Limit}\\
-\wordbox{4}{Source Address}\\
-\wordbox{4}{Destination Address}\\
-\end{bytefield}
-     \caption{IPv6 datagram header}
-    \label{fig:ipv6-header}
-\end{figure}
-
-\subsection{Test for accessibility of formulas}
-
-As can be seen in these equations:
-$c=2 \cdot \pi \cdot r$ or \[ \int_{a}^{b} x^2 \,dx \] a chemical formula: $(C_5O_2H_8)_n$
-...
-\section{Major background area 2}\sweExpl{Viktigt bakgrundsområde 2}
-...
-\subsection{\glsentryshort{WLAN} Security}% you can't use the \gls() command in a heading - but you can get the short (\glsentryshort) or long version (\glsentryshort) or \glsentrylong or even the text entry (\glsentrytext) and then there is no problem - see https://tex.stackexchange.com/questions/198140/glossaries-and-custom-section-headings-broken
-
-\subsection{Network layer security}
-...
-
-\section{Related work area}\sweExpl{Relaterade arbeten}
-
-
-\subsection{Major related work 1}\sweExpl{Relaterade arbeten 1}
-Carrier clouds have been suggested as a way to reduce the delay between the users and the cloud server that is providing them with content. However, there is a question of how to find the available resources in such a carrier cloud. One approach has been to disseminate resource information using an extension to OSPF-TE, see Roozbeh, Sefidcon, and Maguire \cite{roozbeh_resource_2013}.
-
-
-\subsection{Major related work n}\sweExpl{Relaterade arbeten}
-
-\subsection{Minor related work 1}\sweExpl{Mindre relaterat arbete 1}
-
-
-…
-\subsection{Minor related work n}\sweExpl{Mindre relaterat arbete n}
-
-
-\section{Summary}\sweExpl{Sammanfattning}
-\sweExpl{Det är trevligt om detta kapitel
-  avslutas med en sammanfattning. Till exempel kan du inkludera en tabell som
-  sammanfattar andras idéer och fördelar och nackdelar med varje - så som
-  senare kan du jämföra din lösning till var och en av dessa. Detta kommer
-  också att hjälpa dig att definiera de variabler som du kommer att använda
-  för din utvärdering.}
-
-\engExpl{It is nice to have this chapter conclude with a summary. For
-  example, you can include a table that summarizes other people's ideas and
-  benefits and drawbacks with each - so as later you can compare your solution
-  to each of them. This will also help you define the variables that you will
-  use for your evaluation.}
+Breast ultrasound video tumor detection combines speckle-limited imaging, operator-dependent acquisition, and modern video deep learning.
+Convolutional detectors supply strong spatial baselines; temporal mechanisms ranging from $3\mathrm{D}$ convolutions and ConvLSTM memory to factorized attention and hierarchical video transformers offer complementary ways to stabilize predictions across time~\cite{huang2023_3dcnn_video_review,shi2015_convlstm,bertasius2021_spacetime_attention,liu2022_video_swin_transformer}.
+Public benchmarks such as the MICCAI 2022 breast ultrasound video dataset make rigorous comparison possible~\cite{lin2022_buv_miccai}, while efficiency-oriented medical network design provides guidance for keeping inference within interactive budgets~\cite{liu2023_edgemednet}.
+Chapter~\ref{ch:methods} turns these observations into a reproducible methodology with explicit metrics for both diagnostic quality and computational cost.
 
 \cleardoublepage
 \chapter{Method or Methods}
 \label{ch:methods}
-\sweExpl{Metod eller Metodval}
-\generalExpl{This chapter is about Engineering-related
-  content, Methodologies and Methods.  Use a self-explaining title.\\The
-  contents and structure of this chapter will change with your choice of
-  methodology and methods.}
 
+This chapter specifies the pre-study and planned experimental methodology for the degree project.
+It links the research questions in Chapter~\ref{ch:introduction} to concrete datasets, architectural variants, training and optimization protocols, evaluation metrics that capture both diagnostic quality and computational feasibility, and explicit procedures for assessing threats to validity~\cite{litjens2017_survey_deep_medical,dan2024_breast_us_dl_review,lin2022_buv_miccai}.
 
+The working hypothesis, aligned with the individual project plan, is that integrating lightweight temporal modules with a competitive frame-based detector will improve temporal stability and mean average precision (mAP) relative to purely frame-wise inference while maintaining interactive throughput of at least \SI{15}{FPS} on predefined commodity GPU hardware~\cite{lin2022_buv_miccai,shi2015_convlstm,feichtenhofer2019_slowfast,liu2023_edgemednet}.
 
-\generalExpl{Describe the engineering-related contents (preferably with models) and the research methodology and methods that are used in the degree project.\\
-Give a theoretical description of the scientific or engineering methodology  you are going to use and why have you chosen this method. What other methods did you consider and why did you reject them?\\
-In this chapter, you describe what engineering-related and scientific skills you are going to apply, such as modeling, analyzing, developing, and evaluating engineering-related and scientific content. The choice of these methods should be appropriate for the problem. Additionally, you should be conscious of aspects relating to society and ethics (if applicable). The choices should also reflect your goals and what you (or someone else) should be able to do as a result of your solution - which could not be done well before you started.}
-
-The purpose of this chapter is to provide an overview of the research method
-used in this thesis. Section~\ref{sec:researchProcess} describes the research
-process. Section~\ref{sec:researchParadigm} details the research
-paradigm. Section~\ref{sec:dataCollection} focuses on the data collection
-techniques used for this research. Section~\ref{sec:experimentalDesign}
-describes the experimental design. Section~\ref{sec:assessingReliability}
-explains the techniques used to evaluate the reliability and validity of the
-data collected. Section~\ref{sec:plannedDataAnalysis} describes the method
-used for the data analysis. Finally, Section~\ref{sec:evaluationFramework}
-describes the framework selected to evaluate xxx.
-
-\sweExpl{Vilka vetenskaplig eller ingenjörs-metodik ska du använda och varför har du valt den här metoden. Vilka andra metoder gjorde du övervägde du och varför du avvisar dem.
-Vad är dina mål? (Vad ska du kunna göra som ett resultat av din lösning - vilken inte kan göras i god tid innan du började)
-Vad du ska göra? Hur? Varför? Till exempel, om du har implementerat en artefakt vad gjorde du och varför? Hur kommer du utvärdera den.
-Syftet med detta kapitel är att ge en översikt över forsknings metod som
-används i denna avhandling. Avsnitt~\ref{sec:researchProcess} beskriver forskningsprocessen. Avsnitt~\ref{sec:researchParadigm} beskriver forskningsparadigmen detaljerat. Avsnitt~\ref{sec:dataCollection} fokuserar på datainsamlingstekniker som används för denna forskning. Avsnitt~\ref{sec:experimentalDesign} beskriver experimentell
-design. Avsnitt~\ref{sec:assessingReliability} förklarar de tekniker som används för att utvärdera
-tillförlitligheten och giltigheten av de insamlade uppgifterna. Avsnitt~\ref{sec:plannedDataAnalysis}
-beskriver den metod som används för dataanalysen. Slutligen, Avsnitt~\ref{sec:evaluationFramework}
-beskriver ramverket som valts för att utvärdera xxx.\\
-Ofta kan man koppla ett antal följdfrågor till undersökningsfrågan och problemlösningen t ex\\
-(1) Vilken process skall användas för konstruktion av lösningen och vilken process skall kopplas till denna för att svara på undersökningsfrågan?\\
-(2) Hur och vilket resultat (storheter) skall presenteras både för att redovisa svar på undersökningsfrågan (resultatkapitlet i denna rapport) och redovisa resultat av problemlösningen (prototypen, ofta dokument som bilagor men vilka dokument och varför?).\\
-(3) Vilken teori/teknik skall väljas och användas både för undersökningen (taxonomi, matematik, grafer, storheter mm)  och  problemlösning (UML, UseCases, Java mm) och varför?\\
-(4) Vad behöver du som student leverera för att uppnå hög kvalitet (minimikrav) eller mycket hög kvalitet på examensarbetet?\\
-(5) Frågorna kopplar till de följande underkapitlen.\\
-(6) Resonemanget bygger på att studenter på hing-programmet ofta skall konstruera något åt problemägaren och att man till detta måste koppla en intressant ingenjörsfråga. Det finns hela tiden en dualism mellan dessa aspekter i exjobbet.
-}
+Section~\ref{sec:researchProcess} outlines the workflow from literature consolidation through prototype validation.
+Section~\ref{sec:researchParadigm} states the research stance.
+Section~\ref{sec:dataCollection} covers data sources, sampling, and ethics.
+Section~\ref{sec:experimentalDesign} specifies the computational test bed, model variants, training recipe, and latency-oriented optimization.
+Sections~\ref{sec:assessingReliability} and~\ref{sec:plannedDataAnalysis} address validity, reliability, and analysis plans.
+Section~\ref{sec:evaluationFramework} defines metrics summarized in Table~\ref{tab:eval_metrics_methods}.
+Section~\ref{sec:systemDocumentation} lists software documentation expectations.
 
 \section{Research Process}
 \label{sec:researchProcess}
 
-\sweExpl{Undersökningsprocess och utvecklingsprocess}
+Figure~\ref{fig:researchprocess} situates the degree project activities in a single pipeline that alternates between scientific inquiry (what can be claimed about temporal modeling under latency constraints?) and engineering construction (which artifact demonstrates the claim in software?).
+The concrete steps below expand the schematic into milestones that mirror the individual plan: literature consolidation, dataset preparation, baseline implementation, temporal extensions, efficiency optimization, and evaluation with a low-latency prototype.
 
-Figure~\ref{fig:researchprocess} shows the steps conducted to carry out this research. 
-
-\sweExpl{Figur~\ref{fig:researchprocess} visar de steg som utförs för att genomföra\\
-Beskriv, gärna med ett aktivitetsdiagram (UML?), din undersökningsprocess och utvecklingsprocess.  Du måste koppla ihop det akademiska intresset (undersökningsprocess) med ursprungsproblemet (utvecklingsprocess)
-denna forskning.\\
-Aktivitetsdiagram från t ex UML-standard}
-
-
- 
 \begin{figure}[!ht]
   \begin{center}
     \includegraphics[width=0.5\textwidth]{figures/researchprocess.png}
   \end{center}
-  \caption{Research Process}
+  \caption{High-level research and development process for the pre-study, baseline construction, temporal extensions, optimization, and evaluation.}
   \label{fig:researchprocess}
 \end{figure}
 
-\generalExpl{Example of using customized item labels.}
-Some steps in the process:
-\begin{enumerate}[leftmargin=*, label=\textbf{Step \arabic*}, ref=Step \arabic*] %labelindent=1em for indent
+\begin{enumerate}[leftmargin=*, label=\textbf{Step \arabic*}, ref=Step \arabic*]
     \itemsep0em
-    \item \label{x:s1} plan experiment,
-    \item \label{x:s2} conduct experiment,
-    \item \label{x:s3} analyze data from the experiment, and
-    \item \label{x:s4} discuss the results of the analysis.
+    \item \label{x:s1} Conduct a structured literature review on ultrasound CAD, video object detection, spatio-temporal architectures, and efficient deep learning, recording inclusion criteria and representative baselines~\cite{dan2024_breast_us_dl_review,lin2022_buv_miccai,huang2023_3dcnn_video_review,liu2023_edgemednet}.
+    \item \label{x:s2} Curate publicly available breast ultrasound video datasets (primarily the MICCAI 2022 breast ultrasound video corpus and WHBUS-related resources), harmonize annotations, and document preprocessing for reproducibility~\cite{lin2022_buv_miccai,zhang2024_whbus_isbi}.
+    \item \label{x:s3} Implement a frame-wise tumor detector using a modern single-stage or anchor-free head with a strong CNN backbone pretrained on natural images or medical data, establishing reference mAP, sensitivity--specificity trade-offs, and throughput~\cite{redmon2018_yolov3,lin2017_focal_loss_retinanet,lin2022_buv_miccai}.
+    \item \label{x:s4} Integrate temporal modules (for example, ConvLSTM blocks, a shallow SlowFast-style dual pathway, or factorized space-time attention) into the baseline, keeping parameter budgets comparable unless an explicit complexity tier is declared~\cite{shi2015_convlstm,feichtenhofer2019_slowfast,bertasius2021_spacetime_attention}.
+    \item \label{x:s5} Apply training and optimization strategies, including transfer learning, mixed precision, and selective compression or architectural slimming, while monitoring both lesion-level metrics and frames per second~\cite{liu2023_edgemednet}.
+    \item \label{x:s6} Execute quantitative experiments, ablations, and statistical comparisons; profile latency and memory; and package a prototype viewer that overlays predictions on clips for qualitative assessment.
 \end{enumerate}
-
-\sweExpl{Forskningsprocessen}
 
 
 \section{Research Paradigm}
 \label{sec:researchParadigm}
-\sweExpl{Undersökningsparadigm\\
-Exempelvis\\
-Positivistisk (vad/hur fungerar det?) kvalitativ fallstudie med en deduktivt (förbestämd) vald ansats och ett induktivt(efterhand uppstår dataområden och data) insamlade av data och erfarenheter.}
+
+The project adopts a quantitative, empirical paradigm: claims are justified by measurable differences on benchmark tasks under documented assumptions rather than by clinical intuition alone.
+Within that paradigm, a post-positivist stance acknowledges that ground-truth annotations embody expert judgment, class definitions are simplified relative to full pathology, and performance estimates depend on the chosen patient mix and scanner characteristics~\cite{dan2024_breast_us_dl_review}.
+The engineering component follows design-science thinking in that the detector and prototype constitute artifacts whose utility is demonstrated through scenario-based evaluation even though formal deployment in a hospital picture archiving system is out of scope for the thesis.
 
 
 \section{Data Collection}
 \label{sec:dataCollection}
-\sweExpl{Datainsamling\\
-(Detta bör också visa att du är medveten om de sociala och etiska frågor som
-kan vara relevanta för dina data insamlingsmetod.)}
-\generalExpl{This should also show that you are aware of the social and ethical concerns that might be relevant to your data collection method.}
 
-
+All imaging data in the pre-study phase are drawn from de-identified public benchmarks or, when applicable, from collaborative releases that must follow institutional review and data-sharing agreements.
+The student does not recruit participants directly; nevertheless, responsible use of medical images requires honoring dataset licenses, avoiding re-identification attempts, and presenting algorithmic outputs as decision support rather than as definitive diagnoses~\cite{dan2024_breast_us_dl_review,wang2021_ultrasound_dl_review}.
 
 \subsection{Sampling}
-\sweExpl{Stickprovsundersökning}
+
+Sampling is defined at the clip and frame level: each training example corresponds to a short temporal window with associated box-level labels where provided by the benchmark~\cite{lin2022_buv_miccai}.
+Whenever authors publish official train--validation--test splits, those partitions will be reused verbatim to preserve comparability with CVA-Net and related references~\cite{lin2022_buv_miccai}.
+If multi-dataset training is explored, clip-level stratification by malignancy label and, when metadata exist, by acquisition site or scanner family, will be used to reduce optimistic bias from imbalanced mixing; any excluded clip or corrected label will be recorded in a data changelog appendix.
 
 \subsection{Sample Size}
-\sweExpl{Provstorleken}
+
+Effective sample size is determined by the number of annotated videos, clips, and lesion instances in each corpus.
+The MICCAI 2022 breast ultrasound video resource provides a public basis for mAP-style detection evaluation and has supported published temporal fusion architectures~\cite{lin2022_buv_miccai}.
+WHBUS-related corpora and other optional video sets may increase appearance diversity but also induce covariate shift; cross-dataset evaluation will therefore be reported separately from in-distribution scores unless a domain adaptation protocol is explicitly introduced~\cite{zhang2024_whbus_isbi,dan2024_breast_us_dl_review}.
 
 \subsection{Target Population}
-\sweExpl{Målgruppen}
+
+The statistical target population is the union of patient cohorts represented in each dataset's documentation, acknowledging that public benchmarks may skew toward specific institutions, indications, or lesion prevalences~\cite{dan2024_breast_us_dl_review,lin2022_buv_miccai}.
+The intended eventual beneficiaries are clinicians who perform hand-held breast ultrasound and could use low-latency overlays as a second reader; this thesis approximates that setting through offline clip playback and measured throughput rather than through live scanner integration~\cite{liu2023_edgemednet}.
 
 \section[Experimental design/Planned Measurements]{Experimental design and\\Planned Measurements}
 \label{sec:experimentalDesign}
-\sweExpl{Experimentdesign/Mätuppställning}
 
 \subsection{Test environment/test bed/model}
-\engExpl{Describe everything that someone else would need to reproduce your test environment/test bed/model/… .}
-\sweExpl{Testmiljö/testbädd/modell\\
-Beskriv allt att någon annan skulle behöva återskapa din testmiljö / testbädd / modell / …}
+
+Reproducibility requires pinning random seeds, logging software versions, and archiving configuration files alongside model checkpoints.
+Training and evaluation will be implemented in Python using PyTorch (or an equivalent deep learning framework if later migrated, with version control noted), CUDA-enabled NVIDIA GPUs available on KTH high-performance computing clusters or comparable workstations, and containerized or virtual-environment descriptions to freeze dependency graphs~\cite{lin2022_buv_miccai}.
+Input pipelines will resize or pad frames to a standardized spatial resolution, apply per-dataset normalization statistics, optionally employ speckle-reduction preprocessing only when justified by ablation (to avoid obscuring clinically relevant texture), and construct short clips with a documented temporal stride and length.
+Detector heads will predict axis-aligned bounding boxes with class scores; temporal models consume either clip tensors shaped as $T \times 3 \times H \times W$ or fused feature maps depending on the chosen architecture~\cite{redmon2018_yolov3,lin2017_focal_loss_retinanet,shi2015_convlstm,feichtenhofer2019_slowfast}.
 
 \subsection{Hardware/Software to be used}
-\sweExpl{Hårdvara / programvara som ska användas}
+
+Hardware tiers will be documented for each benchmark run, including GPU model, driver version, CPU class, and storage backend, because latency measurements are not transferable across devices.
+Software components include the training framework, CUDA/cuDNN builds, data-loading workers, mixed-precision policy, and profiling utilities (for example, PyTorch profiler or NVIDIA Nsight Systems) used to attribute time to backbone, temporal fusion, and post-processing stages.
+Optional complementary benchmarks on automated three-dimensional breast ultrasound challenges may reuse published evaluation toolkits when investigating generalization, while recognizing differences in imaging geometry relative to two-dimensional video~\cite{luo2025_tdsc_abus_challenge}.
+
+\subsection{Model variants, losses, and training protocol}
+
+The frame-wise baseline will pair a modern detection head (for example, YOLO-style or RetinaNet-style designs with focal modulation for class imbalance) with a strong CNN backbone, optionally initialized from ImageNet or from medical pretraining when available~\cite{redmon2018_yolov3,lin2017_focal_loss_retinanet,lin2022_buv_miccai}.
+Temporal variants will insert fusion blocks after selected backbone stages or on detection features: shallow ConvLSTM stacks for memory, a compact two-branch SlowFast-style module when clip frame rates permit, factorized space-time attention with limited token counts, or a small Video Swin stage when windowed attention yields acceptable throughput~\cite{shi2015_convlstm,feichtenhofer2019_slowfast,bertasius2021_spacetime_attention,liu2022_video_swin_transformer}.
+Training will use matched optimizer settings, augmentation policies, and epoch budgets across variants unless an ablation explicitly studies optimization differences; class imbalance will be handled consistently through loss weighting or sampling so that improvements are not confounded by unequal hard-negative mining~\cite{lin2017_focal_loss_retinanet,wang2021_ultrasound_dl_review}.
+
+\subsection{Optimization strategies for low-latency inference}
+
+Efficiency optimization will proceed in stages: baseline profiling to locate bottlenecks, architectural narrowing of the temporal module, mixed-precision inference where numerically stable, and optional post-training quantization only after verifying lesion sensitivity on a validation split~\cite{liu2023_edgemednet}.
+Throughput will be reported as frames per second and milliseconds per clip with warm-up iterations and fixed batch policies reflective of clinical preview (often batch size one), because batching effects can dominate wall-clock latency~\cite{liu2023_edgemednet}.
+If a proposed model fails the \SI{15}{FPS} target, the thesis will document which component (backbone, temporal fusion, or non-maximum suppression) consumed the marginal cost, supporting interpretable design guidance~\cite{lin2022_buv_miccai,liu2023_edgemednet}.
 
 
 \section{Assessing reliability and validity of the data collected}
 \label{sec:assessingReliability}
-\sweExpl{Bedömning av validitet och reliabilitet hos använda metoder och insamlade data }
-
 
 \subsection{Validity of method}
 \label{sec:validtyOfMethod}
-\sweExpl{Giltigheten av metoder\\
-  Har dina metoder gett dig de rätta svaren och lösningarna? Var metoderna korrekta?}
 
-\engExpl{How will you know if your results are valid?}
-\engExpl{Remember that validity is about the \textit{accuracy} of a measurement while reliability is about the \textit{consistency} of the measurement values under the same conditions (\ie repeatability).}
+Internal validity is strengthened by matching optimizers, schedules, and augmentation policies across compared models, holding out test clips strictly, and reporting confidence intervals or repeated runs when stochasticity is material.
+Construct validity depends on whether bounding-box mAP and related scores align with clinical notions of lesion coverage; therefore, auxiliary lesion-level sensitivity at fixed false-positive rates per frame or per clip, as well as free-response operating characteristic (FROC) style analyses when feasible, will complement mAP~\cite{lin2017_focal_loss_retinanet,lin2022_buv_miccai}.
+External validity remains limited because public datasets may not represent all devices or patient demographics; cross-dataset evaluation partially probes transportability but cannot replace prospective validation~\cite{dan2024_breast_us_dl_review}.
 
 \subsection{Reliability of method}
-\label{sec:reliabilityOfMethod}
-\sweExpl{Tillförlitlighet av för metoder\\
-Hur bra är dina metoder, finns det bättre metoder? Hur kan du förbättra dem?}
-\engExpl{How will you know if your results are reliable?}
+
+Reliability is interpreted as stability of conclusions under reasonable perturbations: varying random seeds, slightly adjusting clip length, or swapping lightweight data augmentations should not reverse major comparative claims between frame-wise and temporal models.
+Profiling-based latency measurements will be repeated across multiple warm-up iterations to reduce variance from GPU frequency scaling.
 
 \subsection{Data validity}
 \label{sec:dataValidity}
-\sweExpl{Giltigheten av uppgifter\\
-Hur vet du om dina resultat är giltiga? Är ditt resultat rättvisande?}
+
+Annotation errors, ambiguous lesion boundaries, and missing frames directly affect labels used for supervised learning.
+Planned mitigations include manual spot-checking of parsed boxes, outlier inspection via visualization, and error analysis stratified by lesion size and histology label when such metadata exist~\cite{lin2022_buv_miccai}.
 
 \subsection{Reliability of data}
 \label{sec:reliabilityOfData}
-\sweExpl{Tillförlitlighet av data\\
-Hur vet du om dina resultat är tillförlitliga? Hur bra är dina resultat?}
+
+Inter-reader variability in the original clinical studies is not re-estimated here, but the thesis will cite dataset documentation on annotation protocols.
+Duplicate clips or near-duplicate frames leaking across splits would inflate reliability; deduplication hashes on spatio-temporal patches will be applied when such leakage is suspected.
 
 
 \section{Planned Data Analysis}
 \label{sec:plannedDataAnalysis}
-\sweExpl{Metod för analys av data}
-
 
 \subsection{Data Analysis Technique}
 \label{sec:dataAnalysisTechnique}
-\sweExpl{Dataanalysteknik}
+
+Primary analysis compares frame-wise and temporal detectors on held-out clips using the metrics in Table~\ref{tab:eval_metrics_methods}.
+Paired tests at the clip level (for example, McNemar-type tests on detection correctness flags or bootstrap resampling of mAP differences) may be employed when distributional assumptions are met; otherwise, non-parametric bootstrap confidence intervals will summarize uncertainty.
+Secondary analyses will examine calibration of classification scores if multi-class extensions are explored, and will quantify temporal consistency via frame-to-frame intersection-over-union (IoU) trajectories for tracked boxes.
 
 \subsection{Software Tools}
 \label{sec:softwareTools}
-\sweExpl{Mjukvaruverktyg}
+
+Analysis notebooks will rely on scientific Python stacks (NumPy, SciPy or Statsmodels, pandas) and plotting libraries (Matplotlib, Seaborn) executed in the same environment as training to avoid version skew.
+Detection metrics will be computed with standard implementations compatible with the Common Objects in Context (COCO) style mAP definition unless a dataset mandates a custom protocol, in which case the deviation will be justified explicitly~\cite{lin2017_focal_loss_retinanet}.
 
 
 \section{Evaluation framework}
 \label{sec:evaluationFramework}
-\sweExpl{Utvärdering och ramverk\\
-Metod för utvärdering, jämförelse mm. Kopplar till kapitel~\ref{ch:resultsAndAnalysis}.}
+
+Table~\ref{tab:eval_metrics_methods} summarizes how each metric supports the dual objectives of diagnostic quality and low-latency feasibility; full numerical results will appear in Chapter~\ref{ch:resultsAndAnalysis} after experiments conclude.
+
+\begin{table}[!ht]
+  \centering
+  \small
+  \caption{Planned evaluation metrics for breast ultrasound video tumor detection and their roles in comparing frame-wise versus spatio-temporal models under computational constraints.}
+  \label{tab:eval_metrics_methods}
+  \begin{tabular}{@{}p{0.20\textwidth}p{0.30\textwidth}p{0.44\textwidth}@{}}
+    \toprule
+    \textbf{Metric} & \textbf{Definition / protocol} & \textbf{Use in this thesis} \\
+    \midrule
+    Accuracy & Fraction of correct decisions at a threshold on classification or presence tasks. & Global sanity check when clip-level labels exist; interpreted cautiously under class imbalance~\cite{dan2024_breast_us_dl_review}. \\
+    Precision & $\mathrm{TP}/(\mathrm{TP}+\mathrm{FP})$ for detections or classifications at an operating point. & Measures false discovery burden, relevant to minimizing unnecessary biopsies in screening-like workflows. \\
+    Recall (sensitivity) & $\mathrm{TP}/(\mathrm{TP}+\mathrm{FN})$. & Highlights missed lesions; reported alongside precision to expose trade-offs. \\
+    F1-score & Harmonic mean of precision and recall. & Single scalar summarizing imbalance scenarios when a threshold is fixed. \\
+    IoU & Intersection over union between predicted and reference boxes (or masks). & Localization quality for overlapping predictions; supports temporal stability analysis. \\
+    mAP & Mean average precision over intersection-over-union thresholds and classes. & Primary ranking metric for object detection comparability with prior breast ultrasound video baselines~\cite{lin2022_buv_miccai,lin2017_focal_loss_retinanet}. \\
+    AUC-ROC & Area under receiver operating characteristic curve for probabilistic scores. & Summarizes discrimination across thresholds for lesion-level or clip-level scores. \\
+    FROC & Free-response ROC analysis counting lesion-level true positives versus false positives per volume. & Complements mAP when counting multiple lesions per clip as in radiology reading studies~\cite{lin2022_buv_miccai}. \\
+    FPS / latency & Throughput in frames per second and milliseconds per clip. & Directly tests the low-latency objective alongside GPU memory usage. \\
+    Params / FLOPs & Parameter count and estimated multiply--accumulate cost. & Explains accuracy--efficiency trade-offs and guides deployment-oriented decisions~\cite{liu2023_edgemednet}. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \section{System documentation}
 \label{sec:systemDocumentation}
-\sweExpl{Systemdokumentation\\
-Med vilka dokument och hur skall en konstruerad prototyp dokumenteras? Detta blir ofta bilagor till rapporten och det som problemägaren till det ursprungliga problemet (industrin) ofta vill ha.\\
-Bland dessa bilagor återfinns ofta, och enligt någon angiven standard, kravdokument, arkitekturdokument, designdokumnet, implementationsdokument, driftsdokument, testprotokoll mm.}
-\generalExpl{If this is going to be a complete document consider putting it in as an appendix, then just put the highlights here.}
+
+The deliverable software will be accompanied by a public or private repository README describing installation, training commands, evaluation scripts, and pretrained weights (subject to licensing).
+An architecture note will summarize tensor shapes through the spatial backbone, temporal fusion module, and detection head, including references to SlowFast, ConvLSTM, or transformer blocks where used~\cite{feichtenhofer2019_slowfast,shi2015_convlstm,bertasius2021_spacetime_attention}.
+Configuration files (for example, YAML or Hydra-style manifests) will record hyperparameters, augmentation policies, and dataset paths so that KTH supervisors and external partners can reproduce core experiments on institutional hardware.
+The prototype demo will document frame grabber interfaces only abstractly, because live scanner integration is out of scope, but will specify video container formats, color mapping, and overlay semantics for future clinical pilots.
 
 
 \cleardoublepage
@@ -1886,13 +1800,18 @@ follows easily from \Cref{eq:mainEq}.
 \fi  %% end of nomenclature example
 
 \cleardoublepage
-% Information for authors
+% ---------------------------------------------------------------------------
+% Template documentation (README_author / README_notes) is disabled here so
+% pdflatex exits cleanly: those files expect extra glossary types and Unicode
+% glyphs that break pdfLaTeX and stop latexmk before BibTeX finishes---which
+% leaves all citations as [?]. Re-enable only when you need to edit the KTH
+% template itself (prefer XeLaTeX/LuaLaTeX and the full README glossary setup).
+% ---------------------------------------------------------------------------
 %\include{README_author}
-\subfile{README_author}
-
-\cleardoublepage
-% information about the template for everyone
-\input{README_notes/README_notes}
+%\subfile{README_author}
+%
+%\cleardoublepage
+%\input{README_notes/README_notes}
 
 \begin{comment}
 % If you actually want to have the full table of National Subject Categories (temporarily) include this appendix
