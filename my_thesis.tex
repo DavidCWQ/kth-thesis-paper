@@ -398,6 +398,10 @@ nopostdot]{glossaries}
 \end{comment}
 \listfiles
 
+% =============================
+% ===== START OF DOCUMENT =====
+% =============================
+
 \begin{document}
 %\selectlanguage{swedish}
 %
@@ -412,6 +416,10 @@ nopostdot]{glossaries}
 % If you do not want to have a bookinfo page, comment out the line saying \bookinfopage and add a \cleardoublepage
 % If you want a bookinfo page: you will get a copyright notice, unless you have used the doclicense package in which case you will get a Creative Commons license. To include the doclicense package, uncomment the configuration of this package above and configure it with your choice of license.
 \bookinfopage
+
+% =============================
+% ===== START OF ABSTRACT =====
+% =============================
 
 % Frontmatter includes the abstracts and table-of-contents
 \frontmatter
@@ -448,47 +456,12 @@ An abstract is (typically) about 250 and 350 words (1/2 A4-page) with the follow
 
 \end{scontents}
 \engExpl{The following are some notes about what can be included (in terms of LaTeX) in your abstract.}
-Choice of typeface with \textbackslash textit, \textbackslash textbf, and \textbackslash texttt:  \textit{x}, \textbf{x}, and \texttt{x}.
-
-Text superscripts and subscripts with \textbackslash textsubscript and \textbackslash textsuperscript: A\textsubscript{x} and A\textsuperscript{x}.
-
-Some symbols that you might find useful are available, such as: \textbackslash textregistered, \textbackslash texttrademark, and \textbackslash textcopyright. For example, 
-the copyright symbol: \textbackslash textcopyright Maguire 2022 results in \textcopyright Maguire 2022. Additionally, here are some examples of text superscripts (which can be combined with some symbols): \textbackslash textsuperscript\{99m\}Tc, A\textbackslash textsuperscript\{*\}, A\textbackslash textsuperscript\{\textbackslash textregistered\}, and A\textbackslash texttrademark resulting in \textsuperscript{99m}Tc, A\textsuperscript{*}, A\textsuperscript{\textregistered}, and A\texttrademark. Two examples of subscripts are: H\textbackslash textsubscript\{2\}O and CO\textbackslash textsubscript\{2\} which produce  H\textsubscript{2}O and CO\textsubscript{2}.
-
-You can use simple environments with begin and end: itemize and enumerate and within these use instances of \textbackslash item.
-
-The following commands can be used: \textbackslash eg, \textbackslash Eg, \textbackslash ie, \textbackslash Ie, \textbackslash etc, and \textbackslash etal: \eg, \Eg, \ie, \Ie, \etc, and \etal.
-
-The following commands for numbering with lowercase Roman numerals: \textbackslash first, \textbackslash Second, \textbackslash third, \textbackslash fourth, \textbackslash fifth, \textbackslash sixth, \textbackslash seventh, and \textbackslash eighth: \first, \Second, \third, \fourth, \fifth, \sixth, \seventh, and \eighth. Note that the second case is set with a capital 'S' to avoid conflicts with the use of second as a unit in the \texttt{siunitx} package.
-
-Equations using \textbackslash( xxxx \textbackslash) or \textbackslash[ xxxx \textbackslash] can be used in the abstract. For example: \( (C_5O_2H_8)_n \)
-or \[ \int_{a}^{b} x^2 \,dx \]
-Note that you \textbf{cannot} use an equation between dollar signs.
-
-
-Even LaTeX comments can be handled by using a backslash to quote the percent symbol, for example: \% comment.
-Note that one can include percentages, such as: 51\% or \SI{51}{\percent}.
-
-\subsection*{Keywords}
-\begin{scontents}[store-env=keywords,print-env=true]
-% If you set the EnglishKeywords earlier, you can retrieve them with:
-\InsertKeywords{english}
-% If you did not set the EnglishKeywords earlier then simply enter the keywords here:
-% comma separate keywords, such as: Canvas Learning Management System, Docker containers, Performance tuning
-\end{scontents}
-\engExpl{\textbf{Choosing good keywords can help others to locate your paper, thesis, dissertation, \ldots and related work.}}
-Choose the most specific keyword from those used in your domain, see for example: the ACM Computing Classification System ({\small \url{https://www.acm.org/publications/computing-classification-system/how-to-use})},
-the IEEE Taxonomy ({\small \url{https://www.ieee.org/publications/services/thesaurus-thank-you.html}}), PhySH (Physics Subject Headings)\linebreak[4] ({\small \url{https://physh.aps.org/}}), \ldots or keyword selection tools such as the  National Library of Medicine's Medical Subject Headings (MeSH)  ({\small \url{https://www.nlm.nih.gov/mesh/authors.html}}) or Google's Keyword Tool ({\small \url{https://keywordtool.io/}})\\
-
-\textbf{Formatting the keywords}:
-\begin{itemize}
-  \item The first letter of a keyword should be set with a capital letter and proper names should be capitalized as usual.
-  \item Spell out acronyms and abbreviations.
-  \item Avoid "stop words" - as they generally carry little or no information.
-  \item List your keywords separated by commas (``,'').
-\end{itemize}    
-Since you should have both English and Swedish keywords - you might think of ordering the keywords in corresponding order (\ie, so that the n\textsuperscript{th} word in each list correspond) - this makes it easier to mechanically find matching keywords.
 \end{abstract}
+
+% =====================================
+% ===== START OF SWEDISH ABSTRACT =====
+% =====================================
+
 \cleardoublepage
 \babelpolyLangStart{swedish}
 \begin{abstract}
@@ -515,7 +488,6 @@ or Swedish abstract and English summary need not be literal translations of each
 % SwedishKeywords were set earlier, hence we can use alternative 2
 \InsertKeywords{swedish}
 \end{scontents}
-\sweExpl{Nyckelord som beskriver innehållet i uppsatsen eller rapporten}
 \end{abstract}
 \cleardoublepage
 \babelpolyLangStop{swedish}
@@ -604,9 +576,11 @@ or Swedish abstract and English summary need not be literal translations of each
 
 %% missing many languages
 
-
-
 }{} %% End the iiftoggle{includeExtraAbstracts}
+
+% ====================================
+% ===== START OF ACKNOWLEDGMENTS =====
+% ====================================
 
 \section*{Acknowledgments}
 \markboth{Acknowledgments}{}
@@ -632,8 +606,10 @@ En dualism som måste hanteras i hela rapporten och projektet
 \engExpl{To ensure academic transparency, you must report whether and how generative AI has been used in your examinable work.  This includes any new content, including, but not limited text, images, tables, or code.}
 \sweExpl{För att säkerställa akademisk transparens måste du rapportera om och hur generativ AI har använts i ditt examinerbara arbete. Detta inkluderar allt nytt innehåll, inklusive, men inte begränsat till, text, bilder, tabeller eller kod.}
 
-I would like to thank xxxx for having yyyy. Or in the case of two authors:\\
-We would like to thank xxxx for having yyyy.
+\engExpl{I would like to thank xxxx for having yyyy. Or in the case of two authors:
+We would like to thank xxxx for having yyyy.}
+\sweExpl{Jag vill tacka xxxx för att de har yyyy. Eller i fallet med två författare:
+Vi vill tacka xxxx för att de har yyyy.}
 
 \acknowlegmentssignature
 
@@ -658,14 +634,6 @@ We would like to thank xxxx for having yyyy.
      {\begin{longtable}[l]{@{}p{\dimexpr 2cm-\tabcolsep}p{0.8\hsize}}}% <-- change the value here
      {\end{longtable}}%
  }
-%\glsaddall
-%\printglossaries[type=\acronymtype, title={List of acronyms}]
-\printglossary[style=mylong, type=\acronymtype, title={List of acronyms and abbreviations}]
-%\printglossary[type=\acronymtype, title={List of acronyms and abbreviations}]
-
-%\printnoidxglossary[style=mylong, title={List of acronyms and abbreviations}]
-\engExpl{The list of acronyms and abbreviations should be in alphabetical order based on the spelling of the acronym or abbreviation.
-}
 
 % if the nomenclature option was specified, then include the nomenclature page(s)
 \ifnomenclature
@@ -673,6 +641,11 @@ We would like to thank xxxx for having yyyy.
     % Output the nomenclature list
     \printnomenclature
 \fi
+
+
+% =================================
+% ===== START OF INTRODUCTION =====
+% =================================
 
 %% The following label is essential to know the page number of the last page of the preface
 %% It is used to compute the data for the "For DIVA" pages
@@ -682,6 +655,7 @@ We would like to thank xxxx for having yyyy.
 \glsresetall
 \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
 \selectlanguage{english}
+
 \chapter{Introduction}
 \label{ch:introduction}
 \sweExpl{svensk: Introduktion}
